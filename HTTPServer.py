@@ -17,6 +17,7 @@ Error =  """
         </html>
 """
 Error_Message = msg.format("html",len(Error),Error)
+image_formate_supported = [".png",".jpg"]
 
 def makeSocket():
     global sock
@@ -34,6 +35,15 @@ def sendContinous(msg:str,s2:socket.socket):
         if s == 0:
             assert RuntimeError("connection closed")
         toal_send += s
+def sendContinousNoEncoding(msg:bytes,s2:socket.socket):
+    msg_len = len(msg)
+    toal_send = 0
+    while toal_send < msg_len:
+        s = s2.send(msg[toal_send:])
+        if s == 0:
+            assert RuntimeError("connection closed")
+        toal_send += s
+    
 def sendALL(msg:str,s2:socket.socket):
     msg_encoded = msg.encode("UTF-8")
     a = s2.sendall(msg_encoded)
@@ -99,13 +109,12 @@ def GET(resource:str):
                 return None
             except:
                 Message = Error_Message
-        if(extension == ".css"):
+        if(extension in image_formate_supported):
             try :
-                css = ''
-                with open("CSS{}".format(resource),"r") as file:
-                    css = file.read()
-                print(css)
-                Message = msg.format("css",len(css),css)
+                img = ''
+                with open("IMG{}".format(resource),"br") as file:
+                    img = file.read()
+                Message = msg.format("image/{}".format(extension[1:]),len(img),img)
                 return None
             except:
                 Message = Error_Message
@@ -123,28 +132,6 @@ def HeaderProcessing(header:str):
         return None
     Message = Error_Message
 
-# def HeaderProcessing(header:str):
-#     global Message,msg
-#     i = 3
-#     j = header.index("HTTP")
-#     Resource = header[i:j]
-#     if(Resource == " / "):
-#         html = ''
-#         with open("HTML/home.html","r") as file:
-#             html = file.read()
-#         print(html)
-#         Message = msg.format(len(html.encode("UTF-8")),html)
-#         return None
-#     else:
-#         try :
-#             html = ''
-#             with open("HTML/{}".format(Resource[1:-1]+".html"),"r") as file:
-#                 html = file.read()
-#             print(html)
-#             Message = msg.format(len(html),html)
-#             return None
-#         except:
-#             Message = Error_Message
 
 def HttpMessageProcessing(Message:list[str]):
     HeaderProcessing(Message[0])
