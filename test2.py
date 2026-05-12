@@ -1,14 +1,20 @@
-def Get(a):
-    def wrapper():
-        print("before function\n")
-        a()
-        print("after function\n")
-    return wrapper
+class a:
+    def __init__(self) -> None:
+        self.route =[]
+    def add_route(self,naem):
+        self.route.append(naem)
 
-@Get
-def hello():
-    print("hello world")
-@Get
-def meow():
-    print("MEOW")
-meow()
+class b:
+    def __init__(self,a) -> None:
+        self.a:a = a #type:ignore
+    def kkk(self):
+        self.a.add_route(naem=self.kkk)
+
+A = a()
+B = b(A)
+B.kkk()
+A.add_route("Meow")
+A.add_route("rat")
+C = b(A)
+print(list(route for route in C.a.route))
+print(list(route for route in B.a.route))
