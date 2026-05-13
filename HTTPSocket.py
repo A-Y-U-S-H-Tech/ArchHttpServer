@@ -4,11 +4,15 @@ from HTTPmessageConst import ResponseHeader
 from MiddleWare import Middleware
 from Route import Router
 import socket
-
+import ssl
+global SecureContext
+SecureContext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+SecureContext.load_cert_chain(certfile="cert.pem",keyfile="key.pem")
+SecureContext.verify_mode =ssl.CERT_OPTIONAL
 class HTTPSocket(ResponseHeader):
     def __init__(self,sock:socket.socket,route :Router,PreRouteMiddleWare:Middleware,PostHandlerMiddleWare:Middleware):
         self.header:str = ''
-        self.sock:socket.socket = sock
+        self.sock:socket.socket = SecureContext.wrap_socket(sock,server_side=True)
         self.router = route
         self.alive = True
         self.recive = ''
@@ -33,7 +37,8 @@ class HTTPSocket(ResponseHeader):
         message_length = 0
         messaged_recived = 0
         while message_length >=messaged_recived:
-            a = self.sock.recv(4096).decode("UTF-8")
+            b = self.sock.recv(4096)
+            a = b.decode("UTF-8")
             self.recive += a # type: ignore
             if "\r\n\r\n" in a :
                 i = self.recive.find("Content-Length:") #type:ignore

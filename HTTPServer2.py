@@ -70,7 +70,7 @@ def Protected(Header:str,Message:str)->tuple[bool,str,str|bytes]:
     j = Header.index("\r\n",0)
     url = Header[0:j].split(" ")
     _header = ResponseHeader()
-    if(url[1] == "/EP.html"):
+    if(url[1] != "/EP.html"):
         _header.add_Inital("HTTP/1.1","The file is protected","401")
         return (True,_header.header,b"")
     return (False,Header,Message)
@@ -78,7 +78,7 @@ def Protected(Header:str,Message:str)->tuple[bool,str,str|bytes]:
 def makeSocket():
     global sock
     sock = socket.socket()
-    sock.bind(("10.12.131.251",8081))
+    sock.bind(("10.12.131.251",8080))
     sock.listen(90)
 def connection()->tuple[socket.socket,socket._Address]:
     return sock.accept()
@@ -99,7 +99,7 @@ PHMW = Middleware()
 PRMW.add_MiddleWare(Protected)
 PRMW.add_MiddleWare(PHPRC_Loger)
 PHMW.add_MiddleWare(PHPRC_Loger)
-PHMW.add_MiddleWare(Protected)
+# PHMW.add_MiddleWare(Protected)
 try :
     makeSocket()
 
