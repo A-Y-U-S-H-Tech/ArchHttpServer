@@ -1,18 +1,20 @@
 """Copyright (C) 2026  Ayush Mishra"""
 """A Basic HTTP Request Pipeline"""
 from HTTPmessageConst import ResponseHeader
+from MiddleWare import Middleware
 from Route import Router
 import socket
 
 class HTTPSocket(ResponseHeader):
-    def __init__(self,sock:socket.socket,route :Router,msg_formate:str):
+    def __init__(self,sock:socket.socket,route :Router,PreRouteMiddleWare:Middleware,PostHandlerMiddleWare:Middleware):
         self.header:str = ''
         self.sock:socket.socket = sock
         self.router = route
         self.alive = True
         self.recive = ''
         self.send = ''
-        self.formate = msg_formate
+        self.Pre_Router_MiddleWare:Middleware = PreRouteMiddleWare
+        self.Post_Handler_Middlewar:Middleware = PostHandlerMiddleWare
         self.HTTPpipeline()
     def HeaderPipeline(self,ContentLength:str="0",ContentType:str="\0"):
         self.add_Date()
@@ -65,13 +67,19 @@ class HTTPSocket(ResponseHeader):
 
     def HTTPpipeline(self):
         self.ReciveData()
-        print(self.recive[0])
-        Message:tuple[str,bytes] = self.HTTPprocessing()#type:ignore
-        self.ADD_externalHeader(Message[0])
-        self.HeaderPipeline()
-        print(self.header)
-        header = self.header.encode("UTF-8")
-        final_Message = header+Message[1] #ignore:type
-        self.SendData(final_Message,len(final_Message))
+        Request =self.Pre_Router_MiddleWare.Excetute_MiddleWare(self.recive[0],self.recive[1])#type:ignore
+        if not Request[0]:
+            self.recive = (Request[1],Request[2])
+            Message:tuple[str,bytes] = self.HTTPprocessing()#type:ignore
+            self.ADD_externalHeader(Message[0])
+            self.HeaderPipeline()
+            Repsonse = self.Post_Handler_Middlewar.Excetute_MiddleWare(self.header,Message[1])
+            final_Message = Repsonse[1].encode("UTF-8") + Repsonse[2] #type:ignore
+            self.SendData(final_Message,len(final_Message))
+        else:
+            self.ADD_externalHeader(Request[1])
+            self.HeaderPipeline()
+            final_Message = self.header.encode("UTf-8")+Request[2] #type:ignore
+            self.SendData(final_Message,len(final_Message))
         self.sock.close()
         self.alive = False
