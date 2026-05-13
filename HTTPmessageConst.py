@@ -34,6 +34,8 @@ class ResponseHeader():
     def ADD_externalHeader(self,header:str):
 
         self.header += header
+    def ADD_Basic_Auth(self,Relam:str):
+        self.header += "WWW-Authenticate:basic {}\n".format(Relam)
 
     def HeaderPipeline(self):
         pass
